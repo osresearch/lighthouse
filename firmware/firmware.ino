@@ -2,7 +2,7 @@
  * XYZ position using the Vive Lighthouse beacons.
  */
 
-#define IR1 20
+#define IR1 5
 
 void setup()
 {
@@ -13,8 +13,8 @@ void setup()
 
 static inline boolean read_pin()
 {
-	return bit_is_set(PINF,1);
-	//return digitalReadFast(IR1) & 2;
+	//return bit_is_set(PINF,1);
+	return digitalReadFast(IR1);
 }
 
 #define NUM_PULSES 64
@@ -68,5 +68,5 @@ void loop()
 		Serial.println(pulses[i]);
 	}
 
-	//Serial.println();
+	Serial.println();
 }
