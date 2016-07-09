@@ -67,6 +67,22 @@
  */
 void ftm0_isr(void)
 {
+/*
+	Serial.print(FTM0_SC, HEX); Serial.print(' ');
+	InputCapture::channelmask = 0x18;
+	Serial.print(InputCapture::channelmask); Serial.print(' ');
+	Serial.print(FTM0_STATUS, HEX); Serial.print(' ');
+	Serial.print(FTM0_C0SC, HEX); Serial.print(' ');
+	Serial.print(FTM0_C1SC, HEX); Serial.print(' ');
+	Serial.print(FTM0_C2SC, HEX); Serial.print(' ');
+	Serial.print(FTM0_C3SC, HEX); Serial.print(' ');
+	Serial.print(FTM0_C4SC, HEX); Serial.print(' ');
+	Serial.print(FTM0_C5SC, HEX); Serial.print(' ');
+	Serial.print(FTM0_C6SC, HEX); Serial.print(' ');
+	Serial.print(FTM0_C7SC, HEX); Serial.print(' ');
+	Serial.println();
+*/
+
 	if (FTM0_SC & 0x80) {
 		#if defined(KINETISK)
 		FTM0_SC = FTM0_SC_VALUE;
@@ -76,12 +92,15 @@ void ftm0_isr(void)
 		InputCapture::overflow_count++;
 		InputCapture::overflow_inc = true;
 	}
+
 	// TODO: this could be efficient by reading FTM0_STATUS
-	uint8_t maskin = InputCapture::channelmask;
+	//const uint8_t maskin = 0x18;
+	const uint8_t maskin = InputCapture::channelmask;
 	if ((maskin & 0x01) && (FTM0_C0SC & 0x80)) InputCapture::list[0]->isr();
 	if ((maskin & 0x02) && (FTM0_C1SC & 0x80)) InputCapture::list[1]->isr();
 	if ((maskin & 0x04) && (FTM0_C2SC & 0x80)) InputCapture::list[2]->isr();
 	if ((maskin & 0x08) && (FTM0_C3SC & 0x80)) InputCapture::list[3]->isr();
+	//if ((FTM0_C3SC & 0x80)) InputCapture::list[3]->isr();
 	if ((maskin & 0x10) && (FTM0_C4SC & 0x80)) InputCapture::list[4]->isr();
 	if ((maskin & 0x20) && (FTM0_C5SC & 0x80)) InputCapture::list[5]->isr();
 	#if defined(KINETISK)
@@ -96,7 +115,7 @@ void ftm0_isr(void)
 
 uint16_t InputCapture::overflow_count = 0;
 bool InputCapture::overflow_inc = false;
-uint8_t InputCapture::channelmask = 0;
+volatile uint8_t InputCapture::channelmask = 0;
 InputCapture * InputCapture::list[8];
 
 InputCapture::InputCapture(int polarity)
@@ -140,9 +159,11 @@ bool InputCapture::begin(uint8_t pin)
 
 	ftm = (struct ftm_channel_struct *)reg;
 
+/*
 	// Check for already installed on this pin
 	if (channelmask & (1 << channel))
 		return false;
+*/
 
 	channelmask |= (1<<channel);
 	list[channel] = this;
@@ -174,6 +195,12 @@ void InputCapture::isr(void)
 	// update the high bits on the counter
 	val |= (count << 16);
 
+/*
+	Serial.print(write_index);
+	Serial.print(' ');
+	Serial.println(val);
+*/
+
 	samples[write_index++ % SAMPLE_COUNT] = val;
 }
 
@@ -191,7 +218,7 @@ int InputCapture::read(uint32_t * val)
 		return 0;
 	}
 
-	int rc = 0;
+	int rc = 1;
 
 	if (w - read_index > SAMPLE_COUNT)
 	{

@@ -36,8 +36,8 @@
 #define SAMPLE_COUNT 64
 
 struct ftm_channel_struct {
-	uint32_t csc;
-	uint32_t cv;
+	volatile uint32_t csc;
+	volatile uint32_t cv;
 };
 
 class InputCapture
@@ -54,7 +54,8 @@ public:
 
 	friend void ftm0_isr(void);
 
-private:
+//private:
+public:
 	void isr(void);
 	struct ftm_channel_struct *ftm;
 
@@ -64,10 +65,11 @@ private:
 
 	uint8_t cscEdge;
 
+public:
 	// track which channels we have installed
-	static uint8_t channelmask;
-	static bool overflow_inc;
 	static uint16_t overflow_count;
+	static volatile uint8_t channelmask;
+	static bool overflow_inc;
 	static InputCapture *list[8];
 };
 

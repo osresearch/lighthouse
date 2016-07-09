@@ -6,22 +6,33 @@
  * The pulses are captured with the Teensy 3's "flexible timer"
  * that uses the 48 MHz system clock to record transitions on the
  * input lines.
+ *
+ * With the opamp circuit, I found it best to use a 100k feedback on 
+ * the first stage and to not include the 220K feedback resistor on
+ * the second stage.
  */
 
 #include "InputCapture.h"
 
-#define IR0 5
-#define IR1 6
+#define IR0 9
+#define IR1 10
 #define ICP_COUNT 2
 InputCapture icp[ICP_COUNT];
 uint32_t prev[ICP_COUNT];
 
 void setup()
 {
-	pinMode(IR0, INPUT_PULLUP);
-	pinMode(IR1, INPUT_PULLUP);
-	icp[0].begin(IR0);
-	icp[1].begin(IR1);
+	if (!icp[0].begin(IR0))
+	{
+		while(1) Serial.println("begin 0 failed");
+	}
+	if (!icp[1].begin(IR1))
+	{
+		while(1) Serial.println("begin 1 failed");
+	}
+
+	//pinMode(IR0, INPUT_PULLUP);
+	//pinMode(IR1, INPUT_PULLUP);
 
 	Serial.begin(115200);
 }
@@ -29,7 +40,6 @@ void setup()
 
 void loop()
 {
-
 	for(int i = 0 ; i < ICP_COUNT ; i++)
 	{
 		uint32_t val;
@@ -41,6 +51,13 @@ void loop()
 		Serial.print(',');
 		Serial.print(val);
 		Serial.print(',');
+#if defined(KINETISK)
+#define CLOCKS_PER_MICROSECOND ((double)F_BUS / 1000000.0)
+#elif defined(KINETISL)
+#define CLOCKS_PER_MICROSECOND ((double)F_PLL / 2000000.0)
+#endif
+		//float delta = (val - prev[i]) / CLOCKS_PER_MICROSECOND;
+		//Serial.print(delta);
 		Serial.print(val - prev[i]);
 		Serial.print(',');
 		Serial.print(rc == -1 ? '0' : '1');
