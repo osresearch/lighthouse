@@ -1,72 +1,51 @@
 /** \file
  * XYZ position using the Vive Lighthouse beacons.
+ *
+ * This uses the BPW34 850nm photodiode and an amplifier circuit.
+ *
+ * The pulses are captured with the Teensy 3's "flexible timer"
+ * that uses the 48 MHz system clock to record transitions on the
+ * input lines.
  */
 
-#define IR1 5
+#include "InputCapture.h"
+
+#define IR0 5
+#define IR1 6
+#define ICP_COUNT 2
+InputCapture icp[ICP_COUNT];
+uint32_t prev[ICP_COUNT];
 
 void setup()
 {
+	pinMode(IR0, INPUT_PULLUP);
 	pinMode(IR1, INPUT_PULLUP);
+	icp[0].begin(IR0);
+	icp[1].begin(IR1);
+
 	Serial.begin(115200);
 }
 
 
-static inline boolean read_pin()
-{
-	//return bit_is_set(PINF,1);
-	return digitalReadFast(IR1);
-}
-
-#define NUM_PULSES 64
-uint32_t pulses[NUM_PULSES];
-unsigned iter = 0;
-
 void loop()
 {
-	// collect the timings on the next set of short pulses
-	uint32_t sync_start = 0;
 
-	for(int i = 0 ; i < NUM_PULSES ; )
+	for(int i = 0 ; i < ICP_COUNT ; i++)
 	{
-		while(!read_pin()) // PORTF & (1 << 1))
-			;
+		uint32_t val;
+		int rc = icp[i].read(&val);
+		if (rc == 0)
+			continue;
 
-		uint32_t pulse_start = micros();
+		Serial.print(i),
+		Serial.print(',');
+		Serial.print(val);
+		Serial.print(',');
+		Serial.print(val - prev[i]);
+		Serial.print(',');
+		Serial.print(rc == -1 ? '0' : '1');
+		Serial.println();
 
-		while(read_pin()) // !(PORTF & (1 << 1)))
-			;
-
-		uint32_t pulse_end = micros();
-		uint32_t delta = pulse_end - pulse_start;
-		if (delta > 40)
-		{
-			// sync pulse
-			sync_start = pulse_start;
-		} else {
-			// sweep pulse
-			pulses[i++] = pulse_start - sync_start;
-		}
+		prev[i] = val;
 	}
-
-	//Serial.print(iter++);
-
-	for(int i = 0 ; i < NUM_PULSES ; i++)
-	{
-#if 0
-		char s[32];
-		sprintf(s, "%5d,%4d",
-			(int) (pulses[i] - start),
-			(int) (pulses[i+1] - pulses[i])
-		);
-		//Serial.print("  ");
-		//Serial.print(pulses[i] - start);
-		//Serial.print(' ');
-		//Serial.print(pulses[i+1] - pulses[i]);
-		Serial.println(s);
-		start = pulses[i];
-#endif
-		Serial.println(pulses[i]);
-	}
-
-	Serial.println();
 }
