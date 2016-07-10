@@ -1,7 +1,4 @@
-.DS_Store
-applet
-application.linux32
-application.linux64
-application.windows32
-application.windows64
-application.macosx
+.*.sw[po]
+.*.lck
+*.s#[0-9]*
+*.b#[0-9]*
