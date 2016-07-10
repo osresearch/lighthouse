@@ -54,8 +54,7 @@ public:
 
 	friend void ftm0_isr(void);
 
-//private:
-public:
+private:
 	void isr(void);
 	struct ftm_channel_struct *ftm;
 
@@ -65,7 +64,6 @@ public:
 
 	uint8_t cscEdge;
 
-public:
 	// track which channels we have installed
 	static uint16_t overflow_count;
 	static volatile uint8_t channelmask;
