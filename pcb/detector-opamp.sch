@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="6.3">
+<eagle version="7.6.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -4838,14 +4838,12 @@ type 0309, grid 2.5 mm</description>
 <part name="IC1" library="linear" deviceset="OPA2725" device="D"/>
 <part name="D1" library="opto-trans-siemens" deviceset="BPW32" device="" value="BPW34"/>
 <part name="C1" library="adafruit" deviceset="C-US" device="C0603K" value="100n"/>
-<part name="C2" library="adafruit" deviceset="C-US" device="C0603K" value="2p2"/>
 <part name="C3" library="adafruit" deviceset="C-US" device="C0603K" value="100n"/>
 <part name="R1" library="adafruit" deviceset="R-US_" device="R0402" value="18k"/>
 <part name="R2" library="adafruit" deviceset="R-US_" device="R0402" value="27k"/>
-<part name="R3" library="adafruit" deviceset="R-US_" device="R0402" value="680k"/>
+<part name="R3" library="adafruit" deviceset="R-US_" device="R0402" value="100k"/>
 <part name="R4" library="adafruit" deviceset="R-US_" device="R0402" value="10k"/>
 <part name="R5" library="adafruit" deviceset="R-US_" device="R0402" value="1k"/>
-<part name="R6" library="adafruit" deviceset="R-US_" device="R0402" value="220k"/>
 <part name="R8" library="adafruit" deviceset="R-US_" device="R0402" value="47"/>
 <part name="C4" library="adafruit" deviceset="C-US" device="C0603K" value="100n"/>
 <part name="GND1" library="supply1" deviceset="GND" device=""/>
@@ -4875,14 +4873,12 @@ type 0309, grid 2.5 mm</description>
 <attribute name="VALUE" x="70.358" y="153.035" size="1.778" layer="96" rot="R180"/>
 </instance>
 <instance part="C1" gate="G$1" x="50.8" y="149.86"/>
-<instance part="C2" gate="G$1" x="83.82" y="132.08" rot="R90"/>
 <instance part="C3" gate="G$1" x="99.06" y="160.02" rot="R90"/>
 <instance part="R1" gate="G$1" x="43.18" y="175.26" rot="R90"/>
 <instance part="R2" gate="G$1" x="43.18" y="149.86" rot="R90"/>
 <instance part="R3" gate="G$1" x="83.82" y="142.24" rot="R180"/>
 <instance part="R4" gate="G$1" x="106.68" y="180.34" rot="R90"/>
 <instance part="R5" gate="G$1" x="114.3" y="180.34" rot="R90"/>
-<instance part="R6" gate="G$1" x="124.46" y="175.26"/>
 <instance part="R8" gate="G$1" x="142.24" y="162.56" rot="R180"/>
 <instance part="C4" gate="G$1" x="88.9" y="172.72" rot="R90"/>
 <instance part="GND1" gate="1" x="83.82" y="149.86"/>
@@ -4927,7 +4923,6 @@ type 0309, grid 2.5 mm</description>
 <pinref part="IC1" gate="A" pin="OUT"/>
 <pinref part="C3" gate="G$1" pin="1"/>
 <wire x1="91.44" y1="160.02" x2="93.98" y2="160.02" width="0.1524" layer="91"/>
-<pinref part="C2" gate="G$1" pin="2"/>
 <wire x1="93.98" y1="160.02" x2="96.52" y2="160.02" width="0.1524" layer="91"/>
 <wire x1="88.9" y1="132.08" x2="93.98" y2="132.08" width="0.1524" layer="91"/>
 <wire x1="93.98" y1="132.08" x2="93.98" y2="142.24" width="0.1524" layer="91"/>
@@ -4947,7 +4942,6 @@ type 0309, grid 2.5 mm</description>
 <wire x1="73.66" y1="157.48" x2="71.12" y2="157.48" width="0.1524" layer="91"/>
 <wire x1="78.74" y1="142.24" x2="73.66" y2="142.24" width="0.1524" layer="91"/>
 <wire x1="73.66" y1="142.24" x2="73.66" y2="157.48" width="0.1524" layer="91"/>
-<pinref part="C2" gate="G$1" pin="1"/>
 <wire x1="81.28" y1="132.08" x2="73.66" y2="132.08" width="0.1524" layer="91"/>
 <wire x1="73.66" y1="132.08" x2="73.66" y2="142.24" width="0.1524" layer="91"/>
 <junction x="73.66" y="157.48"/>
@@ -5013,7 +5007,6 @@ type 0309, grid 2.5 mm</description>
 <pinref part="IC1" gate="B" pin="+IN"/>
 <wire x1="116.84" y1="165.1" x2="114.3" y2="165.1" width="0.1524" layer="91"/>
 <wire x1="114.3" y1="165.1" x2="114.3" y2="175.26" width="0.1524" layer="91"/>
-<pinref part="R6" gate="G$1" pin="1"/>
 <wire x1="114.3" y1="175.26" x2="119.38" y2="175.26" width="0.1524" layer="91"/>
 <pinref part="R5" gate="G$1" pin="1"/>
 <junction x="114.3" y="175.26"/>
@@ -5021,7 +5014,6 @@ type 0309, grid 2.5 mm</description>
 </net>
 <net name="N$7" class="0">
 <segment>
-<pinref part="R6" gate="G$1" pin="2"/>
 <wire x1="129.54" y1="175.26" x2="134.62" y2="175.26" width="0.1524" layer="91"/>
 <wire x1="134.62" y1="175.26" x2="134.62" y2="162.56" width="0.1524" layer="91"/>
 <pinref part="IC1" gate="B" pin="OUT"/>
