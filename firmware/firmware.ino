@@ -16,23 +16,23 @@
 
 #define IR0 9
 #define IR1 10
-#define ICP_COUNT 2
+#define IR2 22
+#define IR3 23
+#define ICP_COUNT 4
 InputCapture icp[ICP_COUNT];
 uint32_t prev[ICP_COUNT];
 
 void setup()
 {
-	if (!icp[0].begin(IR0))
-	{
-		while(1) Serial.println("begin 0 failed");
-	}
-	if (!icp[1].begin(IR1))
-	{
-		while(1) Serial.println("begin 1 failed");
-	}
+	pinMode(IR0, INPUT);
+	pinMode(IR1, INPUT);
+	pinMode(IR2, INPUT);
+	pinMode(IR3, INPUT);
 
-	//pinMode(IR0, INPUT_PULLUP);
-	//pinMode(IR1, INPUT_PULLUP);
+	icp[0].begin(IR0);
+	icp[1].begin(IR1);
+	icp[2].begin(IR2);
+	icp[3].begin(IR3);
 
 	Serial.begin(115200);
 }
@@ -51,6 +51,7 @@ void loop()
 		Serial.print(',');
 		Serial.print(val);
 		Serial.print(',');
+
 #if defined(KINETISK)
 #define CLOCKS_PER_MICROSECOND ((double)F_BUS / 1000000.0)
 #elif defined(KINETISL)
@@ -58,6 +59,7 @@ void loop()
 #endif
 		//float delta = (val - prev[i]) / CLOCKS_PER_MICROSECOND;
 		//Serial.print(delta);
+
 		Serial.print(val - prev[i]);
 		Serial.print(',');
 		Serial.print(rc == -1 ? '0' : '1');
