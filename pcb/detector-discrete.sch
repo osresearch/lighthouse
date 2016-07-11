@@ -5849,6 +5849,9 @@ http://www.linear-tech.com&lt;p&gt;
 <sheets>
 <sheet>
 <plain>
+<text x="137.16" y="-25.4" size="1.778" layer="91">Comparator seems to be optional?
+Output at TP2 seems good enough for
+input into Teensy input capture.</text>
 </plain>
 <instances>
 <instance part="D1" gate="1" x="20.32" y="71.12" rot="R270"/>
@@ -5862,12 +5865,15 @@ http://www.linear-tech.com&lt;p&gt;
 <attribute name="NAME" x="40.64" y="71.12" size="1.778" layer="95"/>
 <attribute name="VALUE" x="40.64" y="68.58" size="1.778" layer="96"/>
 </instance>
-<instance part="T2" gate="G1" x="119.38" y="63.5"/>
-<instance part="Q1" gate="G$1" x="50.8" y="81.28" smashed="yes">
-<attribute name="NAME" x="45.72" y="83.82" size="1.778" layer="95"/>
-<attribute name="VALUE" x="43.18" y="76.2" size="1.778" layer="96"/>
+<instance part="T2" gate="G1" x="119.38" y="63.5" smashed="yes">
+<attribute name="NAME" x="124.46" y="63.5" size="1.778" layer="95"/>
+<attribute name="VALUE" x="124.46" y="60.96" size="1.778" layer="96"/>
 </instance>
-<instance part="C1" gate="G$1" x="-2.54" y="99.06" rot="R90"/>
+<instance part="Q1" gate="G$1" x="50.8" y="81.28" smashed="yes">
+<attribute name="NAME" x="55.88" y="81.28" size="1.778" layer="95"/>
+<attribute name="VALUE" x="55.88" y="78.74" size="1.778" layer="96"/>
+</instance>
+<instance part="C1" gate="G$1" x="0" y="99.06" rot="R90"/>
 <instance part="C2" gate="G$1" x="63.5" y="91.44" rot="R180"/>
 <instance part="C3" gate="G$1" x="30.48" y="40.64" rot="R270"/>
 <instance part="GND1" gate="1" x="27.94" y="48.26"/>
@@ -5906,8 +5912,8 @@ http://www.linear-tech.com&lt;p&gt;
 <instance part="TP1" gate="G$1" x="81.28" y="60.96"/>
 <instance part="R18" gate="G$1" x="43.18" y="22.86" rot="R270"/>
 <instance part="R19" gate="G$1" x="43.18" y="7.62" rot="R270"/>
-<instance part="R20" gate="G$1" x="12.7" y="5.08" rot="R270"/>
-<instance part="R21" gate="G$1" x="12.7" y="-17.78" rot="R270"/>
+<instance part="R20" gate="G$1" x="12.7" y="7.62" rot="R270"/>
+<instance part="R21" gate="G$1" x="12.7" y="-15.24" rot="R270"/>
 <instance part="R22" gate="G$1" x="35.56" y="0"/>
 <instance part="R23" gate="G$1" x="58.42" y="-15.24" rot="R270"/>
 <instance part="R29" gate="G$1" x="104.14" y="-7.62"/>
@@ -5928,7 +5934,7 @@ http://www.linear-tech.com&lt;p&gt;
 </instance>
 <instance part="IC1" gate="G$1" x="127" y="-10.16"/>
 <instance part="+3V2" gate="G$1" x="43.18" y="33.02"/>
-<instance part="GND12" gate="1" x="12.7" y="-25.4"/>
+<instance part="GND12" gate="1" x="12.7" y="-22.86"/>
 <instance part="GND13" gate="1" x="27.94" y="-12.7"/>
 <instance part="GND14" gate="1" x="43.18" y="-22.86"/>
 <instance part="GND15" gate="1" x="58.42" y="-22.86"/>
@@ -5939,7 +5945,7 @@ http://www.linear-tech.com&lt;p&gt;
 <instance part="GND20" gate="1" x="137.16" y="-2.54"/>
 <instance part="+3V3" gate="G$1" x="104.14" y="-15.24"/>
 <instance part="+3V4" gate="G$1" x="127" y="7.62"/>
-<instance part="TP2" gate="G$1" x="83.82" y="-10.16"/>
+<instance part="TP2" gate="G$1" x="81.28" y="-10.16"/>
 </instances>
 <busses>
 </busses>
@@ -5961,7 +5967,7 @@ http://www.linear-tech.com&lt;p&gt;
 <pinref part="R1" gate="G$1" pin="2"/>
 <pinref part="C1" gate="G$1" pin="2"/>
 <wire x1="10.16" y1="96.52" x2="10.16" y2="99.06" width="0.1524" layer="91"/>
-<wire x1="10.16" y1="99.06" x2="2.54" y2="99.06" width="0.1524" layer="91"/>
+<wire x1="10.16" y1="99.06" x2="5.08" y2="99.06" width="0.1524" layer="91"/>
 <pinref part="R3" gate="G$1" pin="2"/>
 <wire x1="12.7" y1="99.06" x2="10.16" y2="99.06" width="0.1524" layer="91"/>
 <junction x="10.16" y="99.06"/>
@@ -6044,6 +6050,7 @@ http://www.linear-tech.com&lt;p&gt;
 <segment>
 <pinref part="C1" gate="G$1" pin="1"/>
 <pinref part="GND3" gate="1" pin="GND"/>
+<wire x1="-2.54" y1="99.06" x2="-5.08" y2="99.06" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="GND4" gate="1" pin="GND"/>
@@ -6221,9 +6228,9 @@ http://www.linear-tech.com&lt;p&gt;
 <pinref part="R20" gate="G$1" pin="2"/>
 <pinref part="R21" gate="G$1" pin="1"/>
 <wire x1="12.7" y1="-5.08" x2="-5.08" y2="-5.08" width="0.1524" layer="91"/>
-<wire x1="12.7" y1="0" x2="12.7" y2="-5.08" width="0.1524" layer="91"/>
+<wire x1="12.7" y1="2.54" x2="12.7" y2="-5.08" width="0.1524" layer="91"/>
 <junction x="12.7" y="-5.08"/>
-<wire x1="12.7" y1="-5.08" x2="12.7" y2="-12.7" width="0.1524" layer="91"/>
+<wire x1="12.7" y1="-5.08" x2="12.7" y2="-10.16" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$12" class="0">
@@ -6269,7 +6276,7 @@ http://www.linear-tech.com&lt;p&gt;
 <wire x1="43.18" y1="17.78" x2="43.18" y2="15.24" width="0.1524" layer="91"/>
 <pinref part="R20" gate="G$1" pin="1"/>
 <wire x1="43.18" y1="15.24" x2="12.7" y2="15.24" width="0.1524" layer="91"/>
-<wire x1="12.7" y1="15.24" x2="12.7" y2="10.16" width="0.1524" layer="91"/>
+<wire x1="12.7" y1="15.24" x2="12.7" y2="12.7" width="0.1524" layer="91"/>
 <pinref part="C11" gate="G$1" pin="1"/>
 <wire x1="43.18" y1="15.24" x2="58.42" y2="15.24" width="0.1524" layer="91"/>
 <wire x1="58.42" y1="15.24" x2="63.5" y2="15.24" width="0.1524" layer="91"/>
@@ -6308,12 +6315,12 @@ http://www.linear-tech.com&lt;p&gt;
 <pinref part="R23" gate="G$1" pin="1"/>
 <wire x1="58.42" y1="-5.08" x2="58.42" y2="-7.62" width="0.1524" layer="91"/>
 <wire x1="58.42" y1="-7.62" x2="58.42" y2="-10.16" width="0.1524" layer="91"/>
-<wire x1="58.42" y1="-7.62" x2="83.82" y2="-7.62" width="0.1524" layer="91"/>
+<wire x1="58.42" y1="-7.62" x2="81.28" y2="-7.62" width="0.1524" layer="91"/>
 <pinref part="R29" gate="G$1" pin="1"/>
 <junction x="58.42" y="-7.62"/>
 <pinref part="TP2" gate="G$1" pin="TP"/>
-<wire x1="83.82" y1="-7.62" x2="99.06" y2="-7.62" width="0.1524" layer="91"/>
-<junction x="83.82" y="-7.62"/>
+<wire x1="81.28" y1="-7.62" x2="99.06" y2="-7.62" width="0.1524" layer="91"/>
+<junction x="81.28" y="-7.62"/>
 </segment>
 </net>
 <net name="N$19" class="0">
@@ -6368,4 +6375,10 @@ http://www.linear-tech.com&lt;p&gt;
 </sheets>
 </schematic>
 </drawing>
+<compatibility>
+<note version="6.3" minversion="6.2.2" severity="warning">
+Since Version 6.2.2 text objects can contain more than one line,
+which will not be processed correctly with this version.
+</note>
+</compatibility>
 </eagle>
