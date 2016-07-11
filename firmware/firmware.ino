@@ -26,10 +26,10 @@
 
 #include "InputCapture.h"
 
-#define IR0 9
-#define IR1 10
-#define IR2 22
-#define IR3 23
+#define IR0 5
+#define IR1 6
+#define IR2 9
+#define IR3 10
 #define ICP_COUNT 4
 InputCapture icp[ICP_COUNT];
 uint32_t prev[ICP_COUNT];
@@ -37,11 +37,6 @@ boolean saw_sync[ICP_COUNT];
 
 void setup()
 {
-	pinMode(IR0, INPUT);
-	pinMode(IR1, INPUT);
-	pinMode(IR2, INPUT);
-	pinMode(IR3, INPUT);
-
 	icp[0].begin(IR0);
 	icp[1].begin(IR1);
 	icp[2].begin(IR2);
@@ -105,8 +100,9 @@ void loop()
 			type = 'S';
 			saw_sync[i] = 0;
 		} else {
-			// junk pulse.  ignore it
-			type = 'J';
+			// A reasonable pulse, but we haven't seen the sync
+			// so this is likely the post-sweep sync pulse start
+			type = 'P';
 			saw_sync[i] = 0;
 		}
 
