@@ -43,11 +43,11 @@ struct ftm_channel_struct {
 class InputCapture
 {
 public:
-	// can it be both?
-	InputCapture(int polarity = FALLING);
+	InputCapture();
 
 	// rxPin can be 5,6,9,10,20,21,22,23
-	bool begin(uint8_t rxPin);
+	// can polarity be both?
+	bool begin(uint8_t rxPin, int polarity=FALLING);
 
 	// 0 == no data, 1 == data, -1 == data, but lost samples
 	int read(uint32_t * val);

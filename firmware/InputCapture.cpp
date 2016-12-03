@@ -101,16 +101,17 @@ bool InputCapture::overflow_inc = false;
 volatile uint8_t InputCapture::channelmask = 0;
 InputCapture * InputCapture::list[8];
 
-InputCapture::InputCapture(int polarity)
+InputCapture::InputCapture()
 {
-	cscEdge = (polarity == FALLING) ? 0b01001000 : 0b01000100;
 }
 
 
-bool InputCapture::begin(uint8_t pin)
+bool InputCapture::begin(uint8_t pin, int polarity)
 {
 	uint32_t channel;
 	volatile void *reg;
+
+	cscEdge = (polarity == FALLING) ? 0b01001000 : 0b01000100;
 
 	if (FTM0_MOD != 0xFFFF || (FTM0_SC & 0x7F) != FTM0_SC_VALUE) {
 		FTM0_SC = 0;
@@ -151,7 +152,7 @@ bool InputCapture::begin(uint8_t pin)
 
 	*portConfigRegister(pin) = PORT_PCR_MUX(4);
 
-	// input capture & interrupt on rising edge
+	// input capture & interrupt on desired edge
 	CSC_CHANGE(ftm, cscEdge);
 
 	NVIC_SET_PRIORITY(IRQ_FTM0, 32);
@@ -165,7 +166,7 @@ void InputCapture::isr(void)
 	uint32_t count = overflow_count;
 	uint32_t val = ftm->cv;
 
-	CSC_INTACK(ftm, cscEdge); // input capture & interrupt on rising edge
+	CSC_INTACK(ftm, cscEdge); // input capture & interrupt on desired edge
 
 	// if the pulse happened recently and we registered an overflow
 	// on this interrupt then we assume that the pulse was in the last
