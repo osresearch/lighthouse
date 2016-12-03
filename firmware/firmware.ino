@@ -36,20 +36,21 @@
 #define IR6 22
 #define IR7 23
 #define ICP_COUNT 8
+
 InputCapture icp[ICP_COUNT];
 uint32_t prev[ICP_COUNT];
 boolean saw_sync[ICP_COUNT];
 
 void setup()
 {
-	icp[0].begin(IR0);
-	icp[1].begin(IR1, RISING);
-	icp[2].begin(IR2);
-	icp[3].begin(IR3, RISING);
-	icp[4].begin(IR4);
-	icp[5].begin(IR5, RISING);
-	icp[6].begin(IR6);
-	icp[7].begin(IR7, RISING);
+	icp[0].begin(IR1, RISING);
+	icp[1].begin(IR3, RISING);
+	icp[2].begin(IR5, RISING);
+	icp[3].begin(IR7, RISING);
+	icp[4].begin(IR0);
+	icp[5].begin(IR2);
+	icp[6].begin(IR4);
+	icp[7].begin(IR6);
 
 	Serial.begin(115200);
 }
@@ -65,7 +66,12 @@ void setup()
 #endif
 
 
-uint8_t rotor;
+unsigned zero_time[4];
+uint8_t axis[4];
+unsigned got_sweep[4];
+unsigned got_skip[4];
+unsigned got_not_skip[4];
+unsigned lighthouse[4];
 
 void loop()
 {
@@ -76,31 +82,57 @@ void loop()
 		if (rc == 0)
 			continue;
 
-		const uint32_t delta = val - prev[i];
+		const uint32_t duty = val - prev[i];
 		prev[i] = val;
 
 		// if this was a falling edge, wait for the rising edge
-		if ((i & 1) == 0)
+		if (i >= 4)
 			continue;
 
-		const uint32_t len = val - prev[i-1];
+		const uint32_t len = val - prev[i+4];
 
-		if (len < 20 * CLOCKS_PER_MICROSECOND)
+		if (len < 15 * CLOCKS_PER_MICROSECOND)
 		{
-			// Sweep!
-			// todo: use the midpoint of the pulse
+			// Sweep! The 0 degree mark is when the rotor
+			// that was not skpped sent its high pulse.
+			// midpoint of the pulse is what we'll use
+			unsigned now = val - len/2;
+			unsigned delta = now - zero_time[i];
+
 			// todo: filter if we don't know the axis
-			int valid = delta < 8000 * CLOCKS_PER_MICROSECOND;
+			int valid = !got_sweep[i]
+				&& lighthouse[i] != 9
+				&& delta < 8000 * CLOCKS_PER_MICROSECOND;
 			
-			Serial.print(i/2);
+			Serial.print(val);
+			Serial.print(",");
+			Serial.print(i);
 			Serial.print(",S,");
-			Serial.print(delta / CLOCKS_PER_MICROSECOND);
+			Serial.print(lighthouse[i]);
+			Serial.print(",");
+			Serial.print(axis[i]);
+			Serial.print(",");
+			Serial.print(delta);
 			Serial.print(",");
 			Serial.print(valid);
 			Serial.print(",");
-			Serial.print(len);
+			Serial.print(len / CLOCKS_PER_MICROSECOND);
 			Serial.println();
+
+			// flag that we have the sweep for this one already
+			got_sweep[i] = 1;
+			got_skip[i] = got_not_skip[i] = 0;
+			lighthouse[i] = 9;
+
 			continue;
+		}
+
+		// this is our first non-sweep pulse,
+		// reset our parameters to wait for our next sync.
+		if (got_sweep[i] || duty > 800 * CLOCKS_PER_MICROSECOND)
+		{
+			lighthouse[i] = 9;  // invalid
+			got_sweep[i] = got_skip[i] = got_not_skip[i] = 0;
 		}
 
 		int skip = 9;
@@ -139,6 +171,31 @@ void loop()
 			break;
 		}
 
+		if (skip == 0)
+		{
+			// store the time of the rising edge of this pulse
+			// and the rotor that is being sent
+			zero_time[i] = prev[i+4];
+			axis[i] = rotor;
+			got_not_skip[i] = 1;
+
+			// if we have already seen the skip sync pluse,
+			// then this is lighthouse 0,
+			if (got_skip[i])
+				lighthouse[i] = 0;
+		} else
+		if (skip == 1)
+		{
+			got_skip[i] = 1;
+
+			// if we have already seen the not-skip sync pulse,
+			// then this is lighthouse 1
+			if (got_not_skip[i])
+				lighthouse[i] = 1;
+		}
+
+		Serial.print(val);
+		Serial.print(",");
 		Serial.print(i);
 		Serial.print(",X,");
 		Serial.print(name);
@@ -151,60 +208,5 @@ void loop()
 		Serial.print(",");
 		Serial.print(len / CLOCKS_PER_MICROSECOND);
 		Serial.println();
-		
-#if 0
-		char type = '?';
-
-		if (rc == -1)
-		{
-			// we lost data.  reset the state
-			type = 'L';
-			saw_sync[i] = 0;
-		} else
-		if (delta < 500 * CLOCKS_PER_MICROSECOND)
-		{
-			// likely a sync pulse, the next one is a sweep
-			type = 'X';
-			saw_sync[i] = val;
-		} else
-		if (delta > 10000 * CLOCKS_PER_MICROSECOND)
-		{
-			// way too long, can't be a real one
-			type = 'J';
-			saw_sync[i] = 0;
-		} else
-		if (delta > 7500 * CLOCKS_PER_MICROSECOND)
-		{
-			// start of another sync pulse, but we didn't
-			// get a sweep.
-			type = 'B';
-			saw_sync[i] = 0;
-		} else
-		if (saw_sync[i])
-		{
-			// we just saw a sync pulse and we aren't out-of-range,
-			// so this is a sweep.
-			type = 'S';
-			saw_sync[i] = 0;
-		} else {
-			// A reasonable pulse, but we haven't seen the sync
-			// so this is likely the post-sweep sync pulse start
-			type = 'P';
-			saw_sync[i] = 0;
-		}
-
-		Serial.print(val);
-		Serial.print(',');
-		Serial.print(i),
-		Serial.print(',');
-		Serial.print(type),
-		Serial.print(',');
-		Serial.print(delta / CLOCKS_PER_MICROSECOND);
-		Serial.print(',');
-
-		const unsigned long delta2 = val - prev[i & 1 ? i-1 : i+1];
-		Serial.print(delta2 / CLOCKS_PER_MICROSECOND);
-		Serial.println();
-#endif
 	}
 }
