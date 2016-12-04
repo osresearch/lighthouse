@@ -25,8 +25,8 @@
  * https://github.com/nairol/LighthouseRedox/blob/master/docs/Light%20Emissions.md
  */
 
-#include "InputCapture.h"
-#include "lighthouse.h"
+#include "LighthouseSensor.h"
+#include "LighthouseXYZ.h"
 
 
 static const int debug = 0;
@@ -39,247 +39,69 @@ static const int debug = 0;
 #define IR5 21
 #define IR6 22
 #define IR7 23
-#define ICP_COUNT 8
 
-InputCapture icp[ICP_COUNT];
-uint32_t prev[ICP_COUNT];
-boolean saw_sync[ICP_COUNT];
+
+// Lighthouse sources rotation matrix & 3d-position
+// needs to be computed and read from EEPROM instead of constant.
+static lightsource lightsources[2] = {{
+    {  -0.88720f,  0.25875f, -0.38201f,
+       -0.04485f,  0.77566f,  0.62956f,
+        0.45920f,  0.57568f, -0.67656f},
+    {  -1.28658f,  2.32719f, -2.04823f}
+}, {
+    {   0.52584f, -0.64026f,  0.55996f,
+        0.01984f,  0.66739f,  0.74445f,
+       -0.85035f, -0.38035f,  0.36364f},
+    {   1.69860f,  2.62725f,  0.92969f}
+}};
+
+
+LighthouseSensor sensors[4];
+LighthouseXYZ xyz[4];
 
 void setup()
 {
-	icp[0].begin(IR1, RISING);
-	icp[1].begin(IR3, RISING);
-	icp[2].begin(IR5, RISING);
-	icp[3].begin(IR7, RISING);
-	icp[4].begin(IR0);
-	icp[5].begin(IR2);
-	icp[6].begin(IR4);
-	icp[7].begin(IR6);
+	sensors[0].begin(0, IR0, IR1);
+	sensors[1].begin(1, IR2, IR3);
+	sensors[2].begin(2, IR4, IR5);
+	sensors[3].begin(3, IR6, IR7);
+
+	for(int i = 0 ; i < 4 ; i++)
+		xyz[i].begin(i, &lightsources[0], &lightsources[1]);
 
 	Serial.begin(115200);
 }
 
 
-#if defined(KINETISK)
-//#define CLOCKS_PER_MICROSECOND ((double)F_BUS / 1000000.0)
-#define CLOCKS_PER_MICROSECOND (F_BUS / 1000000)
-#elif defined(KINETISL)
-// PLL is 48 Mhz, which is 24 clocks per microsecond, but
-// there is a divide by two for some reason.
-#define CLOCKS_PER_MICROSECOND (F_PLL / 2000000)
-#endif
-
-
-unsigned zero_time[4];
-uint8_t axis[4];
-unsigned got_sweep[4];
-unsigned got_skip[4];
-unsigned got_not_skip[4];
-unsigned lighthouse[4];
-
-float angles[4][4];
-unsigned fresh[4];
-
-void
-lighthouse_update(
-	const unsigned sensor,
-	const unsigned ind,
-	const unsigned delta
-)
-{
-	float angle =
-		(delta - 4000.0 * CLOCKS_PER_MICROSECOND) * M_PI / (8333 * CLOCKS_PER_MICROSECOND);
-
-				
-	angles[sensor][ind] = angle;
-	fresh[sensor] |= 1 << ind;
-	if (fresh[sensor] != 0xF)
-		return;
-	fresh[sensor] = 0;
-
-	float ned[3];
-	float dist;
-	lighthouse_compute(angles[sensor], &ned, &dist);
-
-	Serial.print(sensor);
-	Serial.print(",");
-	Serial.print(angles[sensor][0] * 180/M_PI);
-	Serial.print(",");
-	Serial.print(angles[sensor][1] * 180/M_PI);
-	Serial.print(",");
-	Serial.print(angles[sensor][2] * 180/M_PI);
-	Serial.print(",");
-	Serial.print(angles[sensor][3] * 180/M_PI);
-	Serial.print(",");
-	Serial.print((int)(ned[0]*1000));
-	Serial.print(",");
-	Serial.print((int)(ned[1]*1000));
-	Serial.print(",");
-	Serial.print((int)(ned[2]*1000));
-	Serial.print(",");
-	Serial.println(dist);
-}
-
-
 void loop()
 {
-	for(int i = 0 ; i < ICP_COUNT ; i++)
+	for(int i = 0 ; i < 4 ; i++)
 	{
-		uint32_t val;
-		int rc = icp[i].read(&val);
-		if (rc == 0)
+		LighthouseSensor * const s = &sensors[i];
+		LighthouseXYZ * const p = &xyz[i];
+
+		int ind = s->poll();
+		if (ind < 0)
+			continue;
+		if (!p->update(ind, s->angles[ind]))
 			continue;
 
-		const uint32_t duty = val - prev[i];
-		prev[i] = val;
-
-		// if this was a falling edge, wait for the rising edge
-		if (i >= 4)
-			continue;
-
-		const uint32_t len = val - prev[i+4];
-
-		if (len < 15 * CLOCKS_PER_MICROSECOND)
-		{
-			// Sweep! The 0 degree mark is when the rotor
-			// that was not skpped sent its high pulse.
-			// midpoint of the pulse is what we'll use
-			unsigned now = val - len/2;
-			unsigned delta = now - zero_time[i];
-
-			// todo: filter if we don't know the axis
-			int valid = !got_sweep[i]
-				&& lighthouse[i] != 9
-				&& delta < 8000 * CLOCKS_PER_MICROSECOND;
-			
-			if (debug)
-			{
-				Serial.print(val);
-				Serial.print(",");
-				Serial.print(i);
-				Serial.print(",S,");
-				Serial.print(lighthouse[i]);
-				Serial.print(",");
-				Serial.print(axis[i]);
-				Serial.print(",");
-				Serial.print(delta);
-				Serial.print(",");
-				Serial.print(valid);
-				Serial.print(",");
-				Serial.print(len / CLOCKS_PER_MICROSECOND);
-				Serial.println();
-#if 0
-			} else
-			if (valid)
-			{
-				Serial.print(val);
-				Serial.print(",");
-				Serial.print(i);
-				Serial.print(",");
-				Serial.print(lighthouse[i]);
-				Serial.print(",");
-				Serial.print(axis[i]);
-				Serial.print(",");
-				Serial.print(delta);
-				Serial.println();
-#endif
-			}
-
-			int ind = lighthouse[i]*2 + axis[i];
-			if (valid)
-				lighthouse_update(i, ind, delta);
-
-			// flag that we have the sweep for this one already
-			got_sweep[i] = 1;
-			got_skip[i] = got_not_skip[i] = 0;
-			lighthouse[i] = 9;
-
-			continue;
-		}
-
-		// this is our first non-sweep pulse,
-		// reset our parameters to wait for our next sync.
-		if (got_sweep[i] || duty > 800 * CLOCKS_PER_MICROSECOND)
-		{
-			lighthouse[i] = 9;  // invalid
-			got_sweep[i] = got_skip[i] = got_not_skip[i] = 0;
-		}
-
-		int skip = 9;
-		int rotor = 9;
-		int data = 9;
-		const char * name = "??";
-
-		const unsigned window = 4 * CLOCKS_PER_MICROSECOND;
-
-		static const unsigned midpoints[] = {
-			(unsigned) (62.5 * CLOCKS_PER_MICROSECOND),
-			(unsigned) (83.3 * CLOCKS_PER_MICROSECOND),
-			(unsigned) (72.9 * CLOCKS_PER_MICROSECOND),
-			(unsigned) (93.8 * CLOCKS_PER_MICROSECOND),
-			(unsigned) (104.0 * CLOCKS_PER_MICROSECOND),
-			(unsigned) (125.0 * CLOCKS_PER_MICROSECOND),
-			(unsigned) (115.0 * CLOCKS_PER_MICROSECOND),
-			(unsigned) (135.0 * CLOCKS_PER_MICROSECOND),
-		};
-
-		static const char * const names[] = {
-			"j0", "j1", "k0", "k1", "j2", "j3", "k2", "k3",
-		};
-
-		for (int i = 0 ; i < 8 ; i++)
-		{
-			if (len < midpoints[i] - window)
-				continue;
-			if (len > midpoints[i] + window)
-				continue;
-
-			skip = (i >> 2) & 1;
-			rotor = (i >> 1) & 1;
-			data = (i >> 0) & 1;
-			name = names[i];
-			break;
-		}
-
-		if (skip == 0)
-		{
-			// store the time of the rising edge of this pulse
-			// and the rotor that is being sent
-			zero_time[i] = prev[i+4];
-			axis[i] = rotor;
-			got_not_skip[i] = 1;
-
-			// if we have already seen the skip sync pluse,
-			// then this is lighthouse 0,
-			if (got_skip[i])
-				lighthouse[i] = 0;
-		} else
-		if (skip == 1)
-		{
-			got_skip[i] = 1;
-
-			// if we have already seen the not-skip sync pulse,
-			// then this is lighthouse 1
-			if (got_not_skip[i])
-				lighthouse[i] = 1;
-		}
-
-		if (!debug)
-			continue;
-
-		Serial.print(val);
-		Serial.print(",");
 		Serial.print(i);
-		Serial.print(",X,");
-		Serial.print(name);
 		Serial.print(",");
-		Serial.print(skip);
+		Serial.print(s->angles[0] * 180/M_PI);
 		Serial.print(",");
-		Serial.print(rotor);
+		Serial.print(s->angles[1] * 180/M_PI);
 		Serial.print(",");
-		Serial.print(data);
+		Serial.print(s->angles[2] * 180/M_PI);
 		Serial.print(",");
-		Serial.print(len / CLOCKS_PER_MICROSECOND);
-		Serial.println();
+		Serial.print(s->angles[3] * 180/M_PI);
+		Serial.print(",");
+		Serial.print((int)(p->xyz[0]*1000));
+		Serial.print(",");
+		Serial.print((int)(p->xyz[1]*1000));
+		Serial.print(",");
+		Serial.print((int)(p->xyz[2]*1000));
+		Serial.print(",");
+		Serial.println(p->dist);
 	}
 }
