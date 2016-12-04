@@ -1,0 +1,82 @@
+#!/usr/bin/python
+# Compute the position of a Lighthouse given three
+# sensor readings in a known configuration.
+
+from sympy import *
+from sympy import solve_poly_system
+from math import pi
+
+# The default sensor array is 22mm square
+# This fits easily on a breadboard.
+
+r01 = 22
+r12 = 22
+r20 = 22 * sqrt(2)
+
+
+# The few vector math functions that we need
+def cross(a, b):
+	return [
+		a[1]*b[2] - a[2]*b[1],
+		a[2]*b[0] - a[0]*b[2],
+		a[0]*b[1] - a[1]*b[0]
+	]
+
+def dot(a, b):
+	return a[0]*b[0] + a[1]*b[1] + a[2]*b[2]
+
+def unitv(a):
+	mag = sqrt(a[0]*a[0] + a[1]*a[1] + a[2]*a[2])
+	return [a[0]/mag, a[1]/mag, a[2]/mag]
+
+def ray(a1,a2):
+	print "a1=", a1*180/pi
+	print "a2=", a2*180/pi
+	# Normal to X plane
+	plane1 = [+cos(a1), 0, -sin(a1)]
+	# Normal to Y plane
+	plane2 = [0, +cos(a2), +sin(a2)]
+
+	# Cross the two planes to get the ray vector
+	return unitv(cross(plane2,plane1))
+
+def tick2angle(a):
+	return pi * (a / 48.0 - 4000) / 8333
+
+# The four parameter sets as input are the raw tick measurements
+# in 48 MHz system clock values.
+#
+samples = [
+[0,175004,129808,190646,183361,-811,-1142,-678,0.17],
+[1,175188,130361,190558,182852,-796,-1146,-666,0.18],
+[3,176087,129761,189826,183408,-788,-1127,-698,0.17],
+[2,176268,130299,189730,182896,-773,-1131,-686,0.18],
+]
+
+# Translate them into angles, compute each ray vector for each sensor
+# and then compute the angles between them
+
+
+v0 = ray(tick2angle(samples[0][2]), tick2angle(samples[0][1]))
+v1 = ray(tick2angle(samples[1][2]), tick2angle(samples[1][1]))
+v2 = ray(tick2angle(samples[2][2]), tick2angle(samples[2][1]))
+#v3 = ray(tick2angle(samples[3][1]), tick2angle(samples[3][2]))
+
+v01 = dot(v0,v1)
+v12 = dot(v1,v2)
+v20 = dot(v2,v0)
+
+print "v0=", v0
+print "v1=", v1
+print "v2=", v2
+print acos(v01) * 180/pi
+print acos(v12) * 180/pi
+print acos(v20) * 180/pi
+
+k0, k1, k2 = symbols('k0, k1, k2')
+print nsolve((
+	k0*k0 + k1*k1 - 2 * k0 * k1 * v01 - r01,
+	k2*k2 + k1*k1 - 2 * k2 * k1 * v12 - r12,
+	k0*k0 + k2*k2 - 2 * k0 * k2 * v20 - r20,
+), (k0, k1, k2), (1000,1000,1000))
+
