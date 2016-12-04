@@ -20,6 +20,7 @@ public:
 	int poll();
 
 	// Measured angles from the sweep pulses
+	uint32_t raw[4];
 	float angles[4];
 
 	static const bool debug = 0;

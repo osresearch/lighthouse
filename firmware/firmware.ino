@@ -86,13 +86,13 @@ void loop()
 
 		Serial.print(i);
 		Serial.print(",");
-		Serial.print(s->angles[0] * 180/M_PI);
+		Serial.print(s->raw[0]);
 		Serial.print(",");
-		Serial.print(s->angles[1] * 180/M_PI);
+		Serial.print(s->raw[1]);
 		Serial.print(",");
-		Serial.print(s->angles[2] * 180/M_PI);
+		Serial.print(s->raw[2]);
 		Serial.print(",");
-		Serial.print(s->angles[3] * 180/M_PI);
+		Serial.print(s->raw[3]);
 		Serial.print(",");
 		Serial.print((int)(p->xyz[0]*1000));
 		Serial.print(",");

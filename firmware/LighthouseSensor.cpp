@@ -81,7 +81,8 @@ LighthouseSensor::sweep_pulse(
 	if (!valid)
 		return -1;
 
-	// update our angle measurement (floating point)
+	// update our angle measurement (raw and floating point)
+	this->raw[ind] = delta;
 	this->angles[ind] = (delta - 4000.0 * CLOCKS_PER_MICROSECOND)
 		* M_PI / (8333 * CLOCKS_PER_MICROSECOND);
 

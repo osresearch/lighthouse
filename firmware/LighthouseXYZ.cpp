@@ -26,7 +26,7 @@ vec_length(
 {
 	float pow, res;
 
-	arm_power_f32(vec, vec3d_size, &pow); // returns sum of squares
+	arm_power_f32(vec, vec3d_size, &pow);
 	arm_sqrt_f32(pow, &res);
 
 	return res;
