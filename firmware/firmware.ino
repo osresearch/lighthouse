@@ -26,6 +26,10 @@
  */
 
 #include "InputCapture.h"
+#include "lighthouse.h"
+
+
+static const int debug = 0;
 
 #define IR0 5
 #define IR1 6
@@ -73,6 +77,50 @@ unsigned got_skip[4];
 unsigned got_not_skip[4];
 unsigned lighthouse[4];
 
+float angles[4][4];
+unsigned fresh[4];
+
+void
+lighthouse_update(
+	const unsigned sensor,
+	const unsigned ind,
+	const unsigned delta
+)
+{
+	float angle =
+		(delta - 4000.0 * CLOCKS_PER_MICROSECOND) * M_PI / (8333 * CLOCKS_PER_MICROSECOND);
+
+				
+	angles[sensor][ind] = angle;
+	fresh[sensor] |= 1 << ind;
+	if (fresh[sensor] != 0xF)
+		return;
+	fresh[sensor] = 0;
+
+	float ned[3];
+	float dist;
+	lighthouse_compute(angles[sensor], &ned, &dist);
+
+	Serial.print(sensor);
+	Serial.print(",");
+	Serial.print(angles[sensor][0] * 180/M_PI);
+	Serial.print(",");
+	Serial.print(angles[sensor][1] * 180/M_PI);
+	Serial.print(",");
+	Serial.print(angles[sensor][2] * 180/M_PI);
+	Serial.print(",");
+	Serial.print(angles[sensor][3] * 180/M_PI);
+	Serial.print(",");
+	Serial.print((int)(ned[0]*1000));
+	Serial.print(",");
+	Serial.print((int)(ned[1]*1000));
+	Serial.print(",");
+	Serial.print((int)(ned[2]*1000));
+	Serial.print(",");
+	Serial.println(dist);
+}
+
+
 void loop()
 {
 	for(int i = 0 ; i < ICP_COUNT ; i++)
@@ -104,20 +152,42 @@ void loop()
 				&& lighthouse[i] != 9
 				&& delta < 8000 * CLOCKS_PER_MICROSECOND;
 			
-			Serial.print(val);
-			Serial.print(",");
-			Serial.print(i);
-			Serial.print(",S,");
-			Serial.print(lighthouse[i]);
-			Serial.print(",");
-			Serial.print(axis[i]);
-			Serial.print(",");
-			Serial.print(delta);
-			Serial.print(",");
-			Serial.print(valid);
-			Serial.print(",");
-			Serial.print(len / CLOCKS_PER_MICROSECOND);
-			Serial.println();
+			if (debug)
+			{
+				Serial.print(val);
+				Serial.print(",");
+				Serial.print(i);
+				Serial.print(",S,");
+				Serial.print(lighthouse[i]);
+				Serial.print(",");
+				Serial.print(axis[i]);
+				Serial.print(",");
+				Serial.print(delta);
+				Serial.print(",");
+				Serial.print(valid);
+				Serial.print(",");
+				Serial.print(len / CLOCKS_PER_MICROSECOND);
+				Serial.println();
+#if 0
+			} else
+			if (valid)
+			{
+				Serial.print(val);
+				Serial.print(",");
+				Serial.print(i);
+				Serial.print(",");
+				Serial.print(lighthouse[i]);
+				Serial.print(",");
+				Serial.print(axis[i]);
+				Serial.print(",");
+				Serial.print(delta);
+				Serial.println();
+#endif
+			}
+
+			int ind = lighthouse[i]*2 + axis[i];
+			if (valid)
+				lighthouse_update(i, ind, delta);
 
 			// flag that we have the sweep for this one already
 			got_sweep[i] = 1;
@@ -193,6 +263,9 @@ void loop()
 			if (got_not_skip[i])
 				lighthouse[i] = 1;
 		}
+
+		if (!debug)
+			continue;
 
 		Serial.print(val);
 		Serial.print(",");
