@@ -15,7 +15,7 @@ LighthouseSensor::begin(int id, int icp0, int icp1)
 {
 	this->id = id;
 	this->icp_rising.begin(icp0, RISING);
-	this->icp_falling.begin(icp0, FALLING);
+	this->icp_falling.begin(icp1, FALLING);
 }
 
 
@@ -32,6 +32,7 @@ LighthouseSensor::sweep_pulse(
 	// midpoint of the pulse is what we'll use
 	unsigned now = val - len/2;
 	unsigned delta = now - this->zero_time;
+	const int ind = this->lighthouse*2 + this->axis;
 
 	// todo: filter if we don't know the axis
 	int valid = !this->got_sweep
@@ -81,7 +82,6 @@ LighthouseSensor::sweep_pulse(
 		return -1;
 
 	// update our angle measurement (floating point)
-	const int ind = this->lighthouse*2 + this->axis;
 	this->angles[ind] = (delta - 4000.0 * CLOCKS_PER_MICROSECOND)
 		* M_PI / (8333 * CLOCKS_PER_MICROSECOND);
 
@@ -89,7 +89,9 @@ LighthouseSensor::sweep_pulse(
 	return ind;
 }
 
-int LighthouseSensor::poll()
+
+int
+LighthouseSensor::poll()
 {
 	uint32_t val;
 	int rc = this->icp_falling.read(&val);
@@ -100,7 +102,7 @@ int LighthouseSensor::poll()
 	}
 
 	rc = this->icp_rising.read(&val);
-	if (rc == 0)
+	if (rc <= 0)
 		return -1;
 
 	// We have a rising edge pulse, process it

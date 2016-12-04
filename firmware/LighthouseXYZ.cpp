@@ -2,6 +2,10 @@
 #include "LighthouseXYZ.h"
 #include <arm_math.h>
 
+static const int vec3d_size = 3;
+typedef float vec3d[vec3d_size];
+typedef float mat33[3*3];
+
 static void
 vec_cross_product(
 	const vec3d &a,
@@ -98,6 +102,10 @@ void LighthouseXYZ::begin(
 	// store the lighthouse positions
 	this->lighthouse[0] = lh1;
 	this->lighthouse[1] = lh2;
+
+	this->xyz[0] = 0;
+	this->xyz[1] = 0;
+	this->xyz[2] = 0;
 };
 
 
@@ -111,7 +119,7 @@ intersect_lines(
 	vec3d &vec1,
 	vec3d &orig2,
 	vec3d &vec2,
-	vec3d *res,
+	float res[3],
 	float *dist
 )
 {
@@ -144,7 +152,7 @@ intersect_lines(
 	// Result is in the middle
 	vec3d tmp = {};
 	arm_add_f32(pt1, pt2, tmp, vec3d_size);
-	arm_scale_f32(tmp, 0.5f, *res, vec3d_size);
+	arm_scale_f32(tmp, 0.5f, res, vec3d_size);
 
 	// Dist is distance between pt1 and pt2
 	arm_sub_f32(pt1, pt2, tmp, vec3d_size);
@@ -181,7 +189,7 @@ LighthouseXYZ::compute()
 	if (!intersect_lines(
 		this->lighthouse[0]->origin, ray1,
 		this->lighthouse[1]->origin, ray2,
-		&this->xyz,
+		this->xyz,
 		&this->dist
 	))
 		return false;
@@ -206,6 +214,10 @@ LighthouseXYZ::update(
 	float angle
 )
 {
+	if (ind >= 4)
+		return false;
+
+	this->angles[ind] = angle;
 	this->fresh |= 1 << ind;
 	if (this->fresh != 0xF)
 		return false;

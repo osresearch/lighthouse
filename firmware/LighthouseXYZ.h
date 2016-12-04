@@ -8,13 +8,9 @@
 #ifndef _lighthouse_h_
 #define _lighthouse_h_
 
-static const int vec3d_size = 3;
-typedef float vec3d[vec3d_size];
-typedef float mat33[3*3];
-
 struct lightsource {
-    mat33 mat;
-    vec3d origin;
+    float mat[9];
+    float origin[3];
 };
 
 
@@ -27,7 +23,7 @@ public:
 
 	bool update(unsigned ind, float angle);
 
-	vec3d xyz;
+	float xyz[3];
 	float dist;
 
 private:

@@ -29,8 +29,6 @@
 #include "LighthouseXYZ.h"
 
 
-static const int debug = 0;
-
 #define IR0 5
 #define IR1 6
 #define IR2 9
