@@ -6,16 +6,6 @@ from sympy import *
 from sympy import solve_poly_system
 from math import pi
 
-# The default sensor array is 22mm square
-# This fits easily on a breadboard.
-
-r01 = 22
-r02 = N(22*sqrt(2))
-r03 = 22
-r12 = 22
-r13 = N(22*sqrt(2))
-r23 = 22
-
 
 # The few vector math functions that we need
 def cross(a, b):
@@ -62,6 +52,25 @@ def ray(a1,a2):
 
 def tick2angle(a):
 	return pi * (a / 48.0 - 4000) / 8333
+
+
+# The default sensor array is 22mm square
+# This fits easily on a breadboard.
+
+pos = [
+	[+11,-11,0],
+	[-11,-11,0],
+	[-11,+11,0],
+	[+11,+11,0],
+]
+
+# Compute the distances between each of the sensors
+r01 = N(len(vecsub(pos[0],pos[1])))
+r02 = N(len(vecsub(pos[0],pos[2])))
+r03 = N(len(vecsub(pos[0],pos[3])))
+r12 = N(len(vecsub(pos[1],pos[2])))
+r13 = N(len(vecsub(pos[1],pos[3])))
+r23 = N(len(vecsub(pos[2],pos[3])))
 
 
 # Translate them into angles, compute each ray vector for each sensor
