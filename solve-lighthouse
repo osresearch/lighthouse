@@ -1,10 +1,11 @@
 #!/usr/bin/python
-# Compute the position of a Lighthouse given three
+# Compute the position of a Lighthouse given
 # sensor readings in a known configuration.
 
 from sympy import *
 from sympy import solve_poly_system
 from math import pi
+from sys import stdin
 
 
 # The few vector math functions that we need
@@ -76,10 +77,10 @@ r23 = N(len(vecsub(pos[2],pos[3])))
 # Translate them into angles, compute each ray vector for each sensor
 # and then compute the angles between them
 def lighthouse_pos(samples,id):
-	v0 = ray(tick2angle(samples[0][id*2 + 1]), tick2angle(samples[0][id*2 + 2]))
-	v1 = ray(tick2angle(samples[1][id*2 + 1]), tick2angle(samples[1][id*2 + 2]))
-	v2 = ray(tick2angle(samples[2][id*2 + 1]), tick2angle(samples[2][id*2 + 2]))
-	v3 = ray(tick2angle(samples[3][id*2 + 1]), tick2angle(samples[3][id*2 + 2]))
+	v0 = ray(tick2angle(samples[0][id*2]), tick2angle(samples[0][id*2+1]))
+	v1 = ray(tick2angle(samples[1][id*2]), tick2angle(samples[1][id*2+1]))
+	v2 = ray(tick2angle(samples[2][id*2]), tick2angle(samples[2][id*2+1]))
+	v3 = ray(tick2angle(samples[3][id*2]), tick2angle(samples[3][id*2+1]))
 
 	v01 = dot(v0,v1)
 	v02 = dot(v0,v2)
@@ -139,55 +140,56 @@ def lighthouse_pos(samples,id):
 # The four parameter sets as input are the raw tick measurements
 # in 48 MHz system clock values.
 #
+
+# Accumulate lots of samples for each sensor while they
+# are stationary at the origin (0,0,0) and compute
+# the average of them so that we have a better measurement.
+#
+# If we have a good view this should be just a few seconds.
+total_count = 0
+count = [0,0,0,0]
 samples = [
-[
-[0,175004,129808,190646,183361,-811,-1142,-678,0.17],
-[1,175188,130361,190558,182852,-796,-1146,-666,0.18],
-[2,176268,130299,189730,182896,-773,-1131,-686,0.18],
-[3,176087,129761,189826,183408,-788,-1127,-698,0.17],
-],
-[
-
-[0,201179,173827,140827,145540,812,-195,-345,1.43],
-[1,200599,173941,141550,144782,811,-210,-325,1.44],
-[2,200970,174091,140291,143880,834,-202,-325,1.46],
-[3,201536,173983,139576,144641,835,-186,-345,1.45],
-
-],
-[
-[0,181300,99643,186370,200775,-1197,-993,-1406,0.33],
-[1,182807,100136,185753,200642,-1165,-975,-1412,0.33],
-[2,183529,99257,185501,200950,-1167,-970,-1434,0.34],
-[3,181996,98797,186086,201082,-1198,-987,-1428,0.34],
-
-],
-[
-[0,174711,135825,191565,177212,-690,-1222,-497,0.29],
-[1,173750,135879,192416,177095,-712,-1240,-475,0.29],
-[2,174009,136363,192252,176523,-694,-1244,-465,0.30],
-[3,174959,136321,191400,176646,-672,-1226,-487,0.30],
-
-],
-[
-[0,174749,135697,191518,177368,-692,-1219,-502,0.29],
-[1,173763,135705,192382,177304,-716,-1237,-481,0.29],
-[2,173946,136191,192289,176737,-700,-1242,-469,0.30],
-[3,174906,136190,191433,176797,-677,-1224,-490,0.30],
-
-],
-[
-[0,250199,165941,107596,186685,1070,512,-1378,0.90],
-[1,249499,165939,108255,186651,1057,506,-1369,0.90],
-[2,249165,166217,107763,186003,1068,505,-1360,0.91],
-[3,249835,166220,107102,186029,1081,511,-1368,0.92],
-],
-
-
-
-
+	[0,0,0,0],
+	[0,0,0,0],
+	[0,0,0,0],
+	[0,0,0,0],
 ]
 
-for sample in samples:
-	print sample
-	lighthouse_pos(sample, 0)
-	lighthouse_pos(sample, 1)
+# Throw away any old serial data
+for n in range(0,200):
+	line = stdin.readline()
+
+
+for n in range(0,200):
+	line = stdin.readline()
+	cols = line.split(",", 6)
+	print cols
+	i = int(cols[0])
+	if i < 0 or i > 3:
+		print "parse error"
+		continue
+
+	total_count += 1
+	count[i] += 1
+	samples[i][0] += int(cols[1])
+	samples[i][1] += int(cols[2])
+	samples[i][2] += int(cols[3])
+	samples[i][3] += int(cols[4])
+
+# Check that we have enough of each
+# at least 10% of the samples must be from this one
+fail = False
+print count
+for i in range(0,4):
+	if count[i] < total_count / 10:
+		print str(i) + ": too few samples"
+		exit(-1)
+	samples[i][0] /= count[i]
+	samples[i][1] /= count[i]
+	samples[i][2] /= count[i]
+	samples[i][3] /= count[i]
+
+print samples
+
+lighthouse_pos(samples, 0)
+lighthouse_pos(samples, 1)
