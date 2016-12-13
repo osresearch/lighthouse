@@ -70,6 +70,32 @@ void setup()
 	Serial.begin(115200);
 }
 
+static char hexdigit(unsigned val)
+{
+	val &= 0XF;
+	if (val <= 9)
+		return '0' + val;
+	else
+		return 'A' + val - 0xA;
+}
+
+static void print_ootx(LighthouseOOTX & o)
+{
+	Serial.print(o.length);
+	for(unsigned i = 0 ; i < o.length ; i++)
+	{
+		const uint8_t b = o.bytes[i];
+		Serial.print(" ");
+		Serial.print(hexdigit(b >> 4));
+		Serial.print(hexdigit(b >> 0));
+	}
+
+	Serial.println();
+
+	// flag that we have processed this message
+	o.complete = 0;
+}
+
 
 void loop()
 {
@@ -81,6 +107,10 @@ void loop()
 		int ind = s->poll();
 		if (ind < 0)
 			continue;
+
+		if (s->ootx.complete)
+			print_ootx(s->ootx);
+
 		if (!p->update(ind, s->angles[ind]))
 			continue;
 

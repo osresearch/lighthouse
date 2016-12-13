@@ -6,6 +6,7 @@
 #define _LighthouseSensor_h_
 
 #include "InputCapture.h"
+#include "LighthouseOOTX.h"
 
 class LighthouseSensor
 {
@@ -24,6 +25,8 @@ public:
 	float angles[4];
 
 	static const bool debug = 0;
+
+	LighthouseOOTX ootx;
 
 private:
 	int id;

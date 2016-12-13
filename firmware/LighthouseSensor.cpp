@@ -171,7 +171,11 @@ LighthouseSensor::poll()
 		// if we have already seen the skip sync pluse,
 		// then this is lighthouse 0,
 		if (this->got_skip)
+		{
 			this->lighthouse = 0;
+			ootx.add(data);
+			//Serial.println((unsigned) data);
+		}
 	} else
 	if (skip == 1)
 	{
@@ -182,6 +186,8 @@ LighthouseSensor::poll()
 		if (this->got_not_skip)
 			this->lighthouse = 1;
 	}
+
+
 
 	if (debug)
 	{
